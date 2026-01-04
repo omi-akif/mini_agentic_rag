@@ -2,6 +2,8 @@
 
 Clean, simple agentic RAG system using Azure OpenAI, Qdrant vector database, and modular Python architecture.
 
+Use Python 3.10+ for this project. 
+
 ## Features
 - **Build a RAG system**: Created a simple agentic RAG system using Azure OpenAI, Qdrant vector database, and modular Python architecture.
 - **Agentic Pipeline**: ResearcherAgent → CriticAgent for quality answers
