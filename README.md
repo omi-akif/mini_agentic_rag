@@ -102,12 +102,12 @@ bash chat.sh
 
 1. **ResearcherAgent** retrieves relevant chunks from Qdrant
 2. **CriticAgent** reviews and refines the answer
-3. Final grounded answer with source citations
+3. Final grounded answer based on knowledge
 
 ## Components
 
 - **agents.py**: Simple agent classes with tool calling
 - **llm.py**: Azure OpenAI via LiteLLM (verified working)
 - **retrieval.py**: Qdrant vector search
-- **ingestion.py**: PDF processing & embedding generation
+- **ingestion.py**: PDF and csv processing & embedding generation
 - **main.py**: CLI orchestration
