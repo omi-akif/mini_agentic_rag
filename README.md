@@ -3,12 +3,12 @@
 Clean, simple agentic RAG system using Azure OpenAI, Qdrant vector database, and modular Python architecture.
 
 ## Features
-- ✅ **Build a RAG system**: Created a simple agentic RAG system using Azure OpenAI, Qdrant vector database, and modular Python architecture.
-- ✅ **Agentic Pipeline**: ResearcherAgent → CriticAgent for quality answers
-- ✅ **Vector Search**: Qdrant cloud for semantic document retrieval
-- ✅ **Azure OpenAI**: LiteLLM integration done instead of CrewAI and LangGraph
-- ✅ **Document Chunking**: Smart text splitting for better retrieval. 200 tokens overlapping. Chunking size 1000
-- ✅ **Simple & Clean**: No framework was used. Done purely on Python
+- **Build a RAG system**: Created a simple agentic RAG system using Azure OpenAI, Qdrant vector database, and modular Python architecture.
+- **Agentic Pipeline**: ResearcherAgent → CriticAgent for quality answers
+- **Vector Search**: Qdrant cloud for semantic document retrieval
+- **Azure OpenAI**: LiteLLM integration done instead of CrewAI and LangGraph
+- **Document Chunking**: Smart text splitting for better retrieval. 200 tokens overlapping. Chunking size 1000
+- **Simple & Clean**: No framework was used. Done purely on Python
 
 ## Project Structure
 
