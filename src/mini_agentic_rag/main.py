@@ -13,7 +13,7 @@ def main():
     try:
         llm = get_azure_llm()
     except Exception as e:
-        print(f"\n❌ Error initializing LLM: {e}")
+        print(f"\n Error initializing LLM: {e}")
         sys.exit(1)
 
     # Interactive mode if no arguments provided
@@ -44,7 +44,7 @@ def main():
                 print("\n\nGoodbye!")
                 break
             except Exception as e:
-                print(f"\n❌ Error: {e}")
+                print(f"\n Error: {e}")
         return
 
     # Question from command line
@@ -76,7 +76,7 @@ def main():
         print("\n" + "="*80)
         
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n Error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

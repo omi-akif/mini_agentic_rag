@@ -1,4 +1,6 @@
 import os
+import argparse
+import sys
 from typing import List
 from dotenv import load_dotenv
 
@@ -29,8 +31,14 @@ def load_documents(source_path: str) -> List[Document]:
     else:
         raise ValueError(f"Invalid path: {source_path}")
 
+    print(f"Found {len(files)} files to process.")
+
     for file_path in files:
         ext = os.path.splitext(file_path)[1].lower()
+        if ext not in [".txt", ".pdf", ".csv"]:
+            continue
+            
+        print(f"Loading {file_path}...")
         try:
             if ext == ".txt":
                 loader = TextLoader(file_path)
@@ -41,9 +49,6 @@ def load_documents(source_path: str) -> List[Document]:
             elif ext == ".csv":
                 loader = CSVLoader(file_path)
                 documents.extend(loader.load())
-            else:
-                # print(f"Skipping unsupported file type: {file_path}")
-                pass
         except Exception as e:
             print(f"Error loading {file_path}: {e}")
 
@@ -110,32 +115,46 @@ def index_documents(documents: List[Document], embeddings_model: AzureOpenAIEmbe
     print("Successfully indexed documents to Qdrant.")
     return vector_store
 
-if __name__ == "__main__":
-    # Example usage
-    source_path = "knowledge/policy-booklet-0923.pdf"
+def main():
+    parser = argparse.ArgumentParser(description="Ingest documents into Qdrant for Agentic RAG.")
+    parser.add_argument("--path", type=str, default="knowledge", help="Path to a file or directory for ingestion.")
+    parser.add_argument("--collection", type=str, default="agentic_rag_knowledge", help="Qdrant collection name.")
+    parser.add_argument("--chunk-size", type=int, default=1000, help="Chunk size for text splitting.")
+    parser.add_argument("--overlap", type=int, default=200, help="Chunk overlap for text splitting.")
     
-    print(f"Loading documents from {source_path}...")
+    args = parser.parse_args()
+
+    print(f"--- Knowledge Ingestion Started ---")
+    print(f"Source Path: {args.path}")
+    print(f"Collection Name: {args.collection}")
+    
     try:
-        documents = load_documents(source_path)
-        print(f"Loaded {len(documents)} document(s).")
+        # 1. Load Documents
+        print(f"\n1. Loading documents...")
+        documents = load_documents(args.path)
+        if not documents:
+            print("No valid documents found. Exiting.")
+            return
+        print(f"Total documents loaded: {len(documents)}")
         
-        chunks = chunk_documents(documents)
-        print(f"Split into {len(chunks)} chunks.")
+        # 2. Chunk Documents
+        print(f"\n2. Chunking documents (size={args.chunk_size}, overlap={args.overlap})...")
+        chunks = chunk_documents(documents, chunk_size=args.chunk_size, chunk_overlap=args.overlap)
+        print(f"Total chunks created: {len(chunks)}")
         
-        print("Initializing Azure OpenAI Embeddings...")
+        # 3. Get Embeddings Model
+        print(f"\n3. Initializing embeddings model...")
         embeddings_model = get_embeddings_model()
         
-        print("Creating embeddings...")
-        embeddings = create_embeddings(chunks, embeddings_model)
+        # 4. Index to Qdrant
+        print(f"\n4. Indexing to Qdrant...")
+        index_documents(chunks, embeddings_model, collection_name=args.collection)
         
-        if embeddings:
-            print(f"Successfully created {len(embeddings)} embeddings.")
-            print(f"Embedding dimension: {len(embeddings[0])}")
-            
-            # Index to Qdrant
-            index_documents(chunks, embeddings_model)
-        else:
-            print("No embeddings created.")
-            
+        print(f"\n--- Ingestion Complete Successfully ---")
+        
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"\nError during ingestion: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
