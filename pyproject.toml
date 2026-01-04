@@ -1,23 +1,22 @@
 [project]
 name = "mini_agentic_rag"
 version = "0.1.0"
-description = "mini_agentic_rag using crewAI"
+description = "Simple modular agentic RAG system"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.10,<3.14"
 dependencies = [
-    "crewai[tools]==1.7.2",
     "langchain-openai",
     "langchain-community",
-    "python-dotenv"
+    "python-dotenv",
+    "pypdf",
+    "qdrant-client",
+    "langchain-qdrant",
+    "litellm"
 ]
 
 [project.scripts]
-mini_agentic_rag = "mini_agentic_rag.main:run"
-run_crew = "mini_agentic_rag.main:run"
-train = "mini_agentic_rag.main:train"
-replay = "mini_agentic_rag.main:replay"
-test = "mini_agentic_rag.main:test"
-run_with_trigger = "mini_agentic_rag.main:run_with_trigger"
+rag = "mini_agentic_rag.main:main"
+ingest = "mini_agentic_rag.ingestion:main"
 
 [build-system]
 requires = ["hatchling"]

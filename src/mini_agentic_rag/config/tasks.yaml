@@ -1,17 +1,14 @@
-research_task:
+knowledge_extraction_task:
   description: >
-    Conduct a thorough research about {topic}
-    Make sure you find any interesting and relevant information given
-    the current year is {current_year}.
+    Extract information from the knowledge base for the following question: {question}
+    Ensure you use the search tool to find the most relevant sections of the policy.
   expected_output: >
-    A list with 10 bullet points of the most relevant information about {topic}
-  agent: researcher
+    A draft answer based on the retrieved context, citing the relevant sections.
 
-reporting_task:
+critique_task:
   description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
+    Review the initial answer for the question: {question}
+    Use the retrieved context: {context}
+    Ensure the answer is accurate, complete, and follows the policy booklet strictly.
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    Formatted as markdown without '```'
-  agent: reporting_analyst
+    A final, refined, and accurate answer to the user's question.

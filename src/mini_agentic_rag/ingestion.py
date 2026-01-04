@@ -2,10 +2,12 @@ import os
 from typing import List
 from dotenv import load_dotenv
 
-from langchain_community.document_loaders import TextLoader, DirectoryLoader
+from langchain_community.document_loaders import TextLoader, DirectoryLoader, PyPDFLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_core.documents import Document
+from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
 
 # Load environment variables
 load_dotenv()
@@ -13,15 +15,39 @@ load_dotenv()
 def load_documents(source_path: str) -> List[Document]:
     """
     Loads documents from a file or directory.
+    Supports .txt, .pdf, and .csv files.
     """
+    documents = []
+    
     if os.path.isfile(source_path):
-        loader = TextLoader(source_path)
+        files = [source_path]
     elif os.path.isdir(source_path):
-        loader = DirectoryLoader(source_path, glob="**/*.txt", loader_cls=TextLoader)
+        files = []
+        for root, _, filenames in os.walk(source_path):
+            for filename in filenames:
+                files.append(os.path.join(root, filename))
     else:
         raise ValueError(f"Invalid path: {source_path}")
-    
-    return loader.load()
+
+    for file_path in files:
+        ext = os.path.splitext(file_path)[1].lower()
+        try:
+            if ext == ".txt":
+                loader = TextLoader(file_path)
+                documents.extend(loader.load())
+            elif ext == ".pdf":
+                loader = PyPDFLoader(file_path)
+                documents.extend(loader.load())
+            elif ext == ".csv":
+                loader = CSVLoader(file_path)
+                documents.extend(loader.load())
+            else:
+                # print(f"Skipping unsupported file type: {file_path}")
+                pass
+        except Exception as e:
+            print(f"Error loading {file_path}: {e}")
+
+    return documents
 
 def chunk_documents(documents: List[Document], chunk_size: int = 1000, chunk_overlap: int = 200) -> List[Document]:
     """
@@ -61,9 +87,32 @@ def create_embeddings(chunks: List[Document], embeddings_model: AzureOpenAIEmbed
     embeddings = embeddings_model.embed_documents(texts)
     return embeddings
 
+def index_documents(documents: List[Document], embeddings_model: AzureOpenAIEmbeddings, collection_name: str = "agentic_rag_knowledge"):
+    """
+    Indexes documents into Qdrant.
+    """
+    url = os.getenv("QDRANT_URL")
+    api_key = os.getenv("QDRANT_API_KEY")
+
+    if not all([url, api_key]):
+        raise ValueError("Missing Qdrant environment variables. Please check your .env file.")
+
+    print(f"Indexing {len(documents)} chunks into Qdrant collection '{collection_name}'...")
+    
+    vector_store = QdrantVectorStore.from_documents(
+        documents=documents,
+        embedding=embeddings_model,
+        url=url,
+        api_key=api_key,
+        collection_name=collection_name,
+    )
+    
+    print("Successfully indexed documents to Qdrant.")
+    return vector_store
+
 if __name__ == "__main__":
     # Example usage
-    source_path = "knowledge/user_preference.txt"
+    source_path = "knowledge/policy-booklet-0923.pdf"
     
     print(f"Loading documents from {source_path}...")
     try:
@@ -82,6 +131,9 @@ if __name__ == "__main__":
         if embeddings:
             print(f"Successfully created {len(embeddings)} embeddings.")
             print(f"Embedding dimension: {len(embeddings[0])}")
+            
+            # Index to Qdrant
+            index_documents(chunks, embeddings_model)
         else:
             print("No embeddings created.")
             

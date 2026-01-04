@@ -1,94 +1,86 @@
 #!/usr/bin/env python
+"""
+Main entry point for the simple modular agentic RAG system.
+"""
 import sys
-import warnings
+from mini_agentic_rag.llm import get_azure_llm
+from mini_agentic_rag.agents import run_agentic_rag
 
-from datetime import datetime
-
-from mini_agentic_rag.crew import MiniAgenticRag
-
-warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
-
-# This main file is intended to be a way for you to run your
-# crew locally, so refrain from adding unnecessary logic into this file.
-# Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
-
-def run():
-    """
-    Run the crew.
-    """
-    inputs = {
-        'topic': 'AI LLMs',
-        'current_year': str(datetime.now().year)
-    }
-
+def main():
+    """Run the agentic RAG system with a user question or in interactive mode."""
+    # Initialize LLM
+    print("Initializing Azure OpenAI...", flush=True)
     try:
-        MiniAgenticRag().crew().kickoff(inputs=inputs)
+        llm = get_azure_llm()
     except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
+        print(f"\n❌ Error initializing LLM: {e}")
+        sys.exit(1)
 
-
-def train():
-    """
-    Train the crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "AI LLMs",
-        'current_year': str(datetime.now().year)
-    }
-    try:
-        MiniAgenticRag().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-
-    except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
-
-def replay():
-    """
-    Replay the crew execution from a specific task.
-    """
-    try:
-        MiniAgenticRag().crew().replay(task_id=sys.argv[1])
-
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
-
-def test():
-    """
-    Test the crew execution and returns the results.
-    """
-    inputs = {
-        "topic": "AI LLMs",
-        "current_year": str(datetime.now().year)
-    }
-
-    try:
-        MiniAgenticRag().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
-
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the crew: {e}")
-
-def run_with_trigger():
-    """
-    Run the crew with trigger payload.
-    """
-    import json
-
+    # Interactive mode if no arguments provided
     if len(sys.argv) < 2:
-        raise Exception("No trigger payload provided. Please provide JSON payload as argument.")
+        print("="*80, flush=True)
+        print("AGENTIC RAG CHATBOT", flush=True)
+        print("="*80, flush=True)
+        print("Type 'exit', 'quit', or Press Ctrl+C to stop.", flush=True)
+        
+        while True:
+            try:
+                question = input("\n[User]: ").strip()
+                if not question:
+                    continue
+                if question.lower() in ['exit', 'quit']:
+                    print("\nGoodbye!", flush=True)
+                    break
+                
+                print("\n" + "-"*40, flush=True)
+                # Run agentic RAG pipeline
+                result = run_agentic_rag(question, llm)
+                
+                print("\n[Assistant]:", flush=True)
+                print(result["final_answer"], flush=True)
+                print("-"*40, flush=True)
+                
+            except KeyboardInterrupt:
+                print("\n\nGoodbye!")
+                break
+            except Exception as e:
+                print(f"\n❌ Error: {e}")
+        return
 
+    # Question from command line
+    question = " ".join(sys.argv[1:])
+    
+    print("="*80)
+    print("AGENTIC RAG SYSTEM")
+    print("="*80)
+    print(f"\nQuestion: {question}\n")
+    
     try:
-        trigger_payload = json.loads(sys.argv[1])
-    except json.JSONDecodeError:
-        raise Exception("Invalid JSON payload provided as argument")
-
-    inputs = {
-        "crewai_trigger_payload": trigger_payload,
-        "topic": "",
-        "current_year": ""
-    }
-
-    try:
-        result = MiniAgenticRag().crew().kickoff(inputs=inputs)
-        return result
+        # Run agentic RAG pipeline
+        result = run_agentic_rag(question, llm)
+        
+        # Display results
+        print("\n" + "="*80)
+        print("FINAL ANSWER")
+        print("="*80)
+        print(result["final_answer"])
+        
+        print("\n" + "="*80)
+        print(f"SOURCES ({len(result['sources'])} chunks retrieved)")
+        print("="*80)
+        for i, source in enumerate(result["sources"], 1):
+            print(f"\n[{i}] {source['content']}")
+            if source.get('metadata'):
+                print(f"    Metadata: {source['metadata']}")
+        
+        print("\n" + "="*80)
+        
     except Exception as e:
-        raise Exception(f"An error occurred while running the crew with trigger: {e}")
+        print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

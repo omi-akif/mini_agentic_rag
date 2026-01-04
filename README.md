@@ -1,54 +1,73 @@
-# MiniAgenticRag Crew
+# Mini Agentic RAG System
 
-Welcome to the MiniAgenticRag Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+Clean, simple agentic RAG system using Azure OpenAI, Qdrant vector database, and modular Python architecture.
 
-## Installation
+## Features
 
-Ensure you have Python >=3.10 <3.14 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
+- ✅ **Agentic Pipeline**: ResearcherAgent → CriticAgent for quality answers
+- ✅ **Vector Search**: Qdrant for semantic document retrieval
+- ✅ **Azure OpenAI**: Verified working LiteLLM integration
+- ✅ **Document Chunking**: Smart text splitting for better retrieval
+- ✅ **Simple & Clean**: No framework overhead, pure Python
 
-First, if you haven't already, install uv:
+## Project Structure
 
-```bash
-pip install uv
+```
+mini_agentic_rag/
+├── src/mini_agentic_rag/
+│   ├── agents.py       # ResearcherAgent & CriticAgent
+│   ├── llm.py          # Azure OpenAI integration
+│   ├── main.py         # CLI entry point
+│   ├── ingestion.py    # Document loading & chunking
+│   └── retrieval.py    # Qdrant vector search
+├── knowledge/          # PDF documents
+├── .env                # Azure & Qdrant credentials
+└── test_llm.py         # LLM verification script
 ```
 
-Next, navigate to your project directory and install the dependencies:
+## Setup
 
-(Optional) Lock the dependencies and install them by using the CLI command:
+1. **Install dependencies:**
 ```bash
-crewai install
-```
-### Customizing
-
-**Add your `OPENAI_API_KEY` into the `.env` file**
-
-- Modify `src/mini_agentic_rag/config/agents.yaml` to define your agents
-- Modify `src/mini_agentic_rag/config/tasks.yaml` to define your tasks
-- Modify `src/mini_agentic_rag/crew.py` to add your own logic, tools and specific args
-- Modify `src/mini_agentic_rag/main.py` to add custom inputs for your agents and tasks
-
-## Running the Project
-
-To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
-
-```bash
-$ crewai run
+conda activate coder_agent
+pip install -e .
 ```
 
-This command initializes the mini_agentic_rag Crew, assembling the agents and assigning them tasks as defined in your configuration.
+2. **Configure `.env`:**
+```
+AZURE_API_KEY=your_azure_key
+AZURE_API_BASE=your_azure_endpoint
+QDRANT_URL=your_qdrant_url
+QDRANT_API_KEY=your_qdrant_key
+```
 
-This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
+3. **Ingest documents:**
+```bash
+conda run -n coder_agent ingest
+```
 
-## Understanding Your Crew
+## Usage
 
-The mini_agentic_rag Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+```bash
+# Ask questions
+conda run -n coder_agent rag "Your question here"
 
-## Support
+# Examples
+rag "What does Section 1 cover regarding liability?"
+rag "What is covered under Section 2?"
+rag "What types of insurance are available?"
+```
 
-For support, questions, or feedback regarding the MiniAgenticRag Crew or crewAI.
-- Visit our [documentation](https://docs.crewai.com)
-- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
-- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
-- [Chat with our docs](https://chatg.pt/DWjSBZn)
+## How It Works
 
-Let's create wonders together with the power and simplicity of crewAI.
+1. **ResearcherAgent** retrieves relevant chunks from Qdrant
+2. **CriticAgent** reviews and refines the answer
+3. Final grounded answer with source citations
+
+## Components
+
+- **agents.py**: Simple agent classes with tool calling
+- **llm.py**: Azure OpenAI via LiteLLM (verified working)
+- **retrieval.py**: Qdrant vector search
+- **ingestion.py**: PDF processing & embedding generation
+- **main.py**: CLI orchestration
