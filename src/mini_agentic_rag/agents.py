@@ -26,7 +26,6 @@ class Agent:
         self.role = role
         self.backstory = backstory
         self.llm = llm_callable
-        self.conversation_history = []
     
     def run(self, task: str, context: str = "") -> str:
         """Execute the agent's task."""
